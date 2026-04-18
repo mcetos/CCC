@@ -1,0 +1,92 @@
+✅ EX 1: Process & I/O System Calls
+
+Procedure
+
+Import os module.
+Create a process using os.fork().
+If child process → print PID and execute command using execlp().
+If parent process → wait using os.wait().
+Display completion message.
+Create a file using os.open().
+Write data using os.write().
+Close file.
+Open file in read mode.
+Read data using os.read() and display output.
+✅ EX 2: CPU Scheduling Algorithms
+(FCFS / SJF / Round Robin)
+
+Procedure
+
+Define processes with burst time.
+For FCFS:
+Calculate waiting time sequentially.
+Compute turnaround time.
+For SJF:
+Sort processes based on burst time.
+Calculate waiting and turnaround time.
+For Round Robin:
+Assign time quantum.
+Execute processes in cyclic order.
+Display WT and TAT for all processes.
+Calculate average WT and TAT.
+✅ EX 3: Synchronization (Producer–Consumer & Reader–Writer)
+Producer–Consumer
+
+Procedure
+
+Initialize buffer and semaphores (empty, full, mutex).
+Create producer function to generate data.
+Acquire empty and mutex, add item to buffer.
+Release mutex and full.
+Create consumer function to remove data.
+Acquire full and mutex, remove item.
+Release mutex and empty.
+Create threads and execute producer & consumer.
+Reader–Writer
+
+Procedure
+
+Initialize shared variable and semaphores.
+Create reader function.
+Increment read count and lock writer if needed.
+Read shared data.
+Decrement read count and release writer.
+Create writer function.
+Lock resource, update data, release lock.
+Execute reader and writer threads.
+✅ EX 4: Memory Allocation Strategies
+
+Procedure
+
+Initialize memory block.
+Implement First Fit: allocate first suitable block.
+Implement Best Fit: choose smallest suitable block.
+Implement Worst Fit: choose largest block.
+Implement Next Fit: allocate from last position.
+Store allocation details.
+Display memory status after allocation.
+✅ EX 5: Page Replacement Algorithms
+
+Procedure
+
+Define page reference string.
+Set number of frames.
+For FIFO: replace oldest page.
+For Optimal: replace page not used for longest future time.
+For LRU: replace least recently used page.
+For Clock: use reference bit mechanism.
+Count page faults.
+Display total page faults.
+✅ EX 6: Disk Scheduling Algorithms
+
+Procedure
+
+Define disk request sequence.
+Set initial head position.
+Implement FCFS: serve requests in order.
+Implement SSTF: select nearest request.
+Implement SCAN: move head in one direction.
+Implement C-SCAN: circular movement.
+Implement LOOK and C-LOOK.
+Calculate total seek time.
+Display results.

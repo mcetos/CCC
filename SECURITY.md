@@ -1,355 +1,255 @@
-P1
-Implementation of Process and
-I/O System calls 
-
-
-import os
-
-# ---- Process ----
-print("Starting Process System Calls Implementation...")
-
-pid = os.fork()
-if pid == 0:
-    print(f"Child: PID={os.getpid()}, Parent={os.getppid()}")
-    os.execlp("echo", "echo", "Hello from Child Process!")
-else:
-    print(f"Parent: PID={os.getpid()}")
-    os.wait()
-    print("Child Process has completed.")
-
-# ---- I/O ----
-print("\nOutput for I/O System Calls:")
-print("Starting I/O System Calls Implementation...")
-
-file = "test.txt"
-
-# write
-fd = os.open(file, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o644)
-os.write(fd, b"hello this is sample text written using I/O system calls.\n")
-os.close(fd)
-print(f"Data written to file: {file}")
-
-# read
-fd = os.open(file, os.O_RDONLY)
-data = os.read(fd, 100)
-os.close(fd)
-
-print("Content read from file:")
-print(data.decode())
-
-========================================================================================================================================P2 
-Implementation of CPU
-Scheduling Algorithms
-
-
-processes = [(1,6),(2,8),(3,7),(4,3)]
-
-# FCFS
-wt=[0]*4
-for i in range(1,4): wt[i]=processes[i-1][1]+wt[i-1]
-print("FCFS:\nProcess\tBT\tWT\tTAT")
-for i in range(4):
-    tat=processes[i][1]+wt[i]
-    print(f"{processes[i][0]}\t{processes[i][1]}\t{wt[i]}\t{tat}")
-    avg_wt = sum(wt)/4
-    avg_tat = sum(wt[i]+processes[i][1] for i in range(4))/4
-    
-print(f"Average WT = {avg_wt}")
-print(f"Average TAT = {avg_tat}")
-
-# SJF
-p=sorted(processes,key=lambda x:x[1])
-wt=[0]*4
-for i in range(1,4): wt[i]=p[i-1][1]+wt[i-1]
-print("\nSJF:\nProcess\tBT\tWT\tTAT")
-for i in range(4):
-    tat=p[i][1]+wt[i]
-    print(f"{p[i][0]}\t{p[i][1]}\t{wt[i]}\t{tat}")
-    avg_wt = sum(wt)/4
-    avg_tat = sum(wt[i]+p[i][1] for i in range(4))/4
-    
-print(f"Average WT = {avg_wt}")
-print(f"Average TAT = {avg_tat}")
-
-# Round Robin
-rem=[x[1] for x in processes]; wt=[0]*4; t=0; quantum=4
-while any(r>0 for r in rem):
-    for i in range(4):
-        if rem[i]>0:
-            if rem[i]>quantum: t+=quantum; rem[i]-=quantum
-            else: t+=rem[i]; wt[i]=t-processes[i][1]; rem[i]=0
-print("\nRound Robin (q=4):\nProcess\tBT\tWT\tTAT")
-for i in range(4):
-    print(f"{processes[i][0]}\t{processes[i][1]}\t{wt[i]}\t{wt[i]+processes[i][1]}")
-    avg_wt = sum(wt)/4
-    avg_tat = sum(wt[i]+p[i][1] for i in range(4))/4
-    
-print(f"Average WT = {avg_wt}")
-print(f"Average TAT = {avg_tat}")
-
-========================================================================================================================================
-P3
-
-Implementation of Classical
-Synchronization problems
-using semaphores. 
-
-import threading, time, random
-
-print("Producer - Consumer Problem")
-
-buffer=[]; mutex=threading.Semaphore(1)
-empty=threading.Semaphore(5); full=threading.Semaphore(0)
-
-def producer():
-    for _ in range(5):
-        item=random.randint(1,100)
-        empty.acquire(); mutex.acquire()
-        buffer.append(item)
-        print(f"Producer produced : {item}")
-        mutex.release(); full.release()
-        time.sleep(0.5)
-
-def consumer():
-    for _ in range(5):
-        full.acquire(); mutex.acquire()
-        item=buffer.pop(0)
-        print(f"Consumer consumed : {item}")
-        mutex.release(); empty.release()
-        time.sleep(1)
-
-t1=threading.Thread(target=producer)
-t2=threading.Thread(target=consumer)
-t1.start(); t2.start()
-t1.join(); t2.join()
-
-# ----------------------------
-
-print("\nReaders - Writers Problem")
-
-resource=0; rc=0
-rmux=threading.Semaphore(1)
-wmux=threading.Semaphore(1)
-
-def reader(i):
-    global rc
-    rmux.acquire()
-    rc+=1
-    if rc==1: wmux.acquire()
-    rmux.release()
-
-    print(f"Reader - {i} is reading : {resource}")
-
-    rmux.acquire()
-    rc-=1
-    if rc==0: wmux.release()
-    rmux.release()
-
-def writer(i):
-    global resource
-    wmux.acquire()
-    resource+=1
-    print(f"Writer - {i} is writing : {resource}")
-    wmux.release()
-
-threads=[]
-for i in range(3):
-    threads.append(threading.Thread(target=reader,args=(i,)))
-for i in range(2):
-    threads.append(threading.Thread(target=writer,args=(i,)))
-
-for t in threads: t.start()
-for t in threads: t.join()
-
-
-========================================================================================================================================
-P4
-Implementation of Memory
-Allocation Strategies
-
-
-mem=[100]
-
-def first_fit(size):
-    for i in range(len(mem)):
-        if mem[i]>=size:
-            print(f"First-Fit: {size} in block {mem[i]}")
-            mem[i]-=size; return
-    print("No block")
-
-def best_fit(size):
-    idx=min((i for i in range(len(mem)) if mem[i]>=size),
-            key=lambda i:mem[i], default=-1)
-    if idx!=-1:
-        print(f"Best-Fit: {size} in block {mem[idx]}")
-        mem[idx]-=size
-
-def worst_fit(size):
-    idx=max((i for i in range(len(mem)) if mem[i]>=size),
-            key=lambda i:mem[i], default=-1)
-    if idx!=-1:
-        print(f"Worst-Fit: {size} in block {mem[idx]}")
-        mem[idx]-=size
-
-last=0
-def next_fit(size):
-    global last
-    for i in range(last,len(mem)):
-        if mem[i]>=size:
-            print(f"Next-Fit: {size} in block {mem[i]}")
-            mem[i]-=size; last=i; return
-
-# Test
-mem=[100]; first_fit(30); first_fit(20); first_fit(50); print("Mem:",mem)
-mem=[100]; best_fit(30);  best_fit(20);  best_fit(50);  print("Mem:",mem)
-mem=[100]; worst_fit(30); worst_fit(20); worst_fit(50); print("Mem:",mem)
-mem=[100]; last=0; next_fit(30); next_fit(20); next_fit(50); print("Mem:",mem)
-
-========================================================================================================================================
-P5
-Implementation of Page
-Replacement Algorithms 
-
-pages = [7, 0, 1, 2, 0, 3, 0, 4, 2, 3, 0, 3, 2, 3, 0, 3]
-nf = 3
-
-# FIFO
-f = []
-faults = 0
-for p in pages:
-    if p not in f:
-        if len(f) < nf:
-            f.append(p)
+1. Caesar Cipher
+from Crypto.Cipher import AES
+def caesar(text, shift):
+    result = ""
+    for char in text:
+        if char.isalpha():
+            base = ord('A') if char.isupper() else ord('a')
+            result += chr((ord(char) - base + shift) % 26 + base)
         else:
-            f.pop(0)
-            f.append(p)
-        faults += 1
-print(f"FIFO Page Faults: {faults}")
+            result += char
+    return result
+text = "HELLO"
+encrypted = caesar(text, 3)
+decrypted = caesar(encrypted, -3)
+print("Original :", text)
+print("Encrypted:", encrypted)
+print("Decrypted:", decrypted)
 
-# LRU
-f = []
-faults = 0
-for p in pages:
-    if p not in f:
-        if len(f) < nf:
-            f.append(p)
+Output:
+Original : HELLO
+Encrypted: KHOOR
+Decrypted: HELLO
+
+=============================================================================================================================================================================================================
+2. Playfair Cipher
+def generate_matrix(key):
+    key = key.upper().replace("J", "I")
+    seen = []
+    for ch in key + "ABCDEFGHIKLMNOPQRSTUVWXYZ":
+        if ch not in seen:
+            seen.append(ch)
+    return [seen[i*5:(i+1)*5] for i in range(5)]
+def find_pos(matrix, ch):
+    for r, row in enumerate(matrix):
+        if ch in row:
+            return r, row.index(ch)
+def playfair_encrypt(text, key):
+    matrix = generate_matrix(key)
+    text = text.upper().replace("J", "I").replace(" ", "")
+    pairs = []
+    i = 0
+    while i < len(text):
+        a = text[i]
+        b = text[i+1] if i+1 < len(text) else 'X'
+        if a == b:
+            pairs.append((a, 'X'))
+            i += 1
         else:
-            f.pop(0)
-            f.append(p)
-        faults += 1
-    else:
-        f.remove(p)
-        f.append(p)
-print(f"LRU Page Faults: {faults}")
-
-# Optimal
-f = []
-faults = 0
-for i, p in enumerate(pages):
-    if p not in f:
-        if len(f) < nf:
-            f.append(p)
+            pairs.append((a, b))
+            i += 2
+    result = ""
+    for a, b in pairs:
+        r1,c1 = find_pos(matrix, a)
+        r2,c2 = find_pos(matrix, b)
+        if r1 == r2:
+            result += matrix[r1][(c1+1)%5] + matrix[r2][(c2+1)%5]
+        elif c1 == c2:
+            result += matrix[(r1+1)%5][c1] + matrix[(r2+1)%5][c2]
         else:
-            far = -1
-            rep = -1
-            for j, fr in enumerate(f):
-                if fr not in pages[i+1:]:
-                    rep = j
-                    break
-                else:
-                    dist = pages[i+1:].index(fr)
-                    if dist > far:
-                        far = dist
-                        rep = j
-            f[rep] = p
-        faults += 1
-print(f"Optimal Page Faults: {faults}")
+            result += matrix[r1][c2] + matrix[r2][c1]
+    return result
+print("Encrypted:", playfair_encrypt("HELLO", "KEY"))
 
-# Clock
-f = []
-bits = []
-ptr = 0
-faults = 0
-for p in pages:
-    if p not in f:
-        if len(f) < nf:
-            f.append(p)
-            bits.append(1)
-        else:
-            while bits[ptr] == 1:
-                bits[ptr] = 0
-                ptr = (ptr + 1) % nf
-            f[ptr] = p
-            bits[ptr] = 1
-        faults += 1
-    else:
-        bits[f.index(p)] = 1
-print(f"Clock Page Faults: {faults}")
+Output:
+Encrypted: DAXGM
 
-========================================================================================================================================
-P6
-Implementation of Disk
-Scheduling Algorithms 
+============================================================================================================================================================================================================
+3. Hill Cipher
+import numpy as np
+def hill_encrypt(text, key_matrix):
+    text = text.upper()
+    nums = [ord(c) - ord('A') for c in text]
+    vector = np.array(nums).reshape(-1, 1)
+    result = np.dot(key_matrix, vector) % 26
+    return ''.join(chr(int(n) + ord('A')) for n in result.flatten())
 
-req = [176, 79, 34, 60, 92, 11, 41, 114]
-head = 50
+key = np.array([[3, 3], [2, 5]])
+text = "HI"
+encrypted = hill_encrypt(text, key)
+print("Original :", text)
+print("Encrypted:", encrypted)
 
-# FCFS
-t = 0
-cur = head
-for r in req:
-    t += abs(cur - r)
-    cur = r
-print(f"FCFS Seek Time: {t}")
+Output:
+Original : HI
+Encrypted: DL
 
-# SSTF
-t = 0
-cur = head
-rem = req[:]
-while rem:
-    c = min(rem, key=lambda x: abs(x - cur))
-    t += abs(cur - c)
-    cur = c
-    rem.remove(c)
-print(f"SSTF Seek Time: {t}")
+===============================================================================================================================================================================================================
+4. Rail Fence Cipher
+def rail_fence_encrypt(text, rails):
+    fence = [[] for _ in range(rails)]
+    rail, direction = 0, 1
+    for char in text:
+        fence[rail].append(char)
+        if rail == 0:
+            direction = 1
+        elif rail == rails - 1:
+            direction = -1
+        rail += direction
+    return ''.join(''.join(row) for row in fence)
+def rail_fence_decrypt(cipher, rails):
+    n = len(cipher)
+    pattern = []
+    rail, direction = 0, 1
+    for i in range(n):
+        pattern.append(rail)
+        if rail == 0: direction = 1
+        elif rail == rails - 1: direction = -1
+        rail += direction
+    indices = sorted(range(n), key=lambda x: pattern[x])
+    result = [''] * n
+    for i, ch in zip(indices, cipher):
+        result[i] = ch
+    return ''.join(result)
+text = "HELLOWORLD"
+enc = rail_fence_encrypt(text, 3)
+dec = rail_fence_decrypt(enc, 3)
+print("Original :", text)
+print("Encrypted:", enc)
+print("Decrypted:", dec)
 
-# SCAN
-s = sorted(req)
-left = [x for x in s if x < head]
-right = [x for x in s if x >= head]
-t = 0
-if right:
-    t += abs(head - right[0])
-    t += abs(right[0] - right[-1])
-    if left:
-        t += abs(right[-1] - left[0])
-print(f"SCAN Seek Time: {t}")
+Output:
+Original : HELLOWORLD
+Encrypted: HOLELWRDLO
+Decrypted: HELLOWORLD
 
-# C-SCAN
-s = sorted(req)
-left = [x for x in s if x < head]
-right = [x for x in s if x >= head]
-t = 0
-if right and left:
-    t = abs(head - right[-1]) + abs(right[-1] - left[0])
-print(f"C-SCAN Seek Time: {t}")
+===============================================================================================================================================================================
+5. Columnar Transposition Cipher
+def columnar_encrypt(text, key):
+    text = text.replace(" ", "").upper()
+    cols = len(key)
+    rows = -(-len(text) // cols)          # ceil division
+    text = text.ljust(rows * cols, 'X')   # pad with X
+    grid = [text[i*cols:(i+1)*cols] for i in range(rows)]
+    order = sorted(range(cols), key=lambda x: key[x])
+    return ''.join(''.join(row[c] for row in grid) for c in order)
+def columnar_decrypt(cipher, key):
+    cols = len(key)
+    rows = len(cipher) // cols
+    order = sorted(range(cols), key=lambda x: key[x])
+    grid = {}
+    idx = 0
+    for c in order:
+        grid[c] = list(cipher[idx:idx+rows])
+        idx += rows
+    return ''.join(''.join(grid[c][r] for c in range(cols)) for r in range(rows))
+text = "HELLOWORLD"
+key  = [3, 1, 4, 2]
+enc  = columnar_encrypt(text, key)
+dec  = columnar_decrypt(enc, key)
+print("Original :", text)
+print("Encrypted:", enc)
+print("Decrypted:", dec)
 
-# LOOK
-s = sorted(req)
-left = [x for x in s if x < head]
-right = [x for x in s if x >= head]
-t = abs(head - (min(left) if left else max(right)))
-print(f"LOOK Seek Time: {t}")
+Output:
+Original : HELLOWORLD
+Encrypted: ELXLHXORWD
+Decrypted: HELLOWORLD
 
-# C-LOOK
-s = sorted(req)
-right = [x for x in s if x >= head]
-t = abs(head - max(right)) if right else 0
-print(f"C-LOOK Seek Time: {t}")
+===========================================================================================================================================================================
+📦 Install Required Library
+bashpip install pycryptodome numpy
 
 
-
-
+PYTHON PROGRAM PROCEDURES (Pycrypt Libraries / Logic)
+1. Caesar Cipher
+         Take plaintext and key (shift value).
+         Convert each letter to its ASCII value.
+         Shift the letter by key value.
+         Wrap around if it exceeds alphabet range.
+         Convert back to character → ciphertext.
+         For decryption, shift in reverse.
+2. Playfair Cipher
+         Remove duplicate letters from key.
+         Create 5×5 matrix (combine I/J).
+         Split plaintext into letter pairs.
+         If same letters in pair → insert ‘X’.
+         Apply rules:
+         Same row → shift right
+         Same column → shift down
+         Rectangle → swap columns
+         Combine letters → ciphertext.
+3. Hill Cipher
+         Choose key matrix (n×n).
+         Convert plaintext letters → numbers (A=0…Z=25).
+         Split into blocks of size n.
+         Multiply block with key matrix.
+        Take mod 26 of result.
+        Convert numbers → ciphertext letters.
+4. Rail Fence Cipher
+        Choose number of rails (rows).
+         Write plaintext in zigzag pattern.
+         Read row-wise to get ciphertext.
+         For decryption, reconstruct zigzag.
+5. Columnar Transposition
+         Choose a keyword.
+        Write plaintext in rows under keyword.
+        Number columns based on alphabetical order of key.
+        Read columns in sorted order.
+        Combine → ciphertext.
+        TOOL-BASED PROCEDURES (CrypTool / Snort)
+6. DES Algorithm (CrypTool)
+         Open CrypTool.
+         Enter plaintext.
+         Select DES algorithm.
+         Enter key (56-bit).
+         Click encrypt → ciphertext generated.
+         Use same key for decryption.
+7. AES Algorithm (CrypTool)
+       Open CrypTool.
+       Enter plaintext.
+      Choose AES (128/192/256-bit).
+      Enter key.
+      Click encrypt → ciphertext.
+      Decrypt using same key.
+8. RSA Algorithm (CrypTool)
+       Open CrypTool.
+       Generate public & private keys.
+       Enter plaintext.
+       Encrypt using public key.
+       Decrypt using private key.
+9. Diffie-Hellman Key Exchange
+      Choose prime number (p) and base (g).
+      User A selects private key → computes public key.
+      User B selects private key → computes public key.
+      Exchange public keys.
+      Compute shared secret key using formula.
+      Both get same key.
+10. SHA-1 Message Digest
+      Open CrypTool.
+      Enter message.
+      Select SHA-1 hashing.
+      Generate hash value (160-bit).
+      Output is fixed-length digest.
+11. MD5 Message Digest
+      Open CrypTool.
+      Enter message.
+      Select MD5 hashing.
+      Generate hash value (128-bit).
+      Used for integrity checking.
+12. Digital Signature (DSS)
+     Generate key pair (public/private).
+     Create hash of message.
+     Encrypt hash using private key → signature.
+     Send message + signature.
+     Receiver verifies using public key.
+13. Intrusion Detection System (Snort)
+     Install Snort tool.
+     Configure rules file.
+     Start Snort in monitoring mode.
+      Capture network packets.
+     Detect suspicious activity.
+       Generate alerts/logs.
 
 
 

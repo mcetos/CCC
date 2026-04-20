@@ -1,0 +1,329 @@
+1 Error Correction Code
+
+
+# sender
+data = input("Enter 4-bit data: ")
+print("Original Data:", data)
+# place bits
+h = ['0']*7
+h[2] = data[0]
+h[4] = data[1]
+h[5] = data[2]
+h[6] = data[3]
+# parity bits
+h[0] = str((int(h[2])+int(h[4])+int(h[6]))%2)
+h[1] = str((int(h[2])+int(h[5])+int(h[6]))%2)
+h[3] = str((int(h[4])+int(h[5])+int(h[6]))%2)
+code = "".join(h)
+print("Encoded Data:", code)
+# receiver (add error at position 4)
+r = list(code)
+r[3] = '1' if r[3]=='0' else '0'
+recv = "".join(r)
+print("Received Data:", recv)
+# check error
+p1 = (int(r[0])+int(r[2])+int(r[4])+int(r[6]))%2
+p2 = (int(r[1])+int(r[2])+int(r[5])+int(r[6]))%2
+p3 = (int(r[3])+int(r[4])+int(r[5])+int(r[6]))%2
+pos = p1 + p2*2 + p3*4
+if pos == 0:
+    print("No error")
+else:
+    print("Error detected at position:", pos)
+
+Error Correction Code
+Enter 4-bit data: 1011
+Original Data: 1011
+Encoded Data: 0110011
+Received Data: 0111011
+Error detected at position: 4
+
+=================================================================================================================================================================================
+2  TCP Echo Program
+Server (echo_server.py)
+
+import socket
+s = socket.socket()
+s.bind(("127.0.0.1", 12345))
+s.listen(1)
+print("Server listening on 127.0.0.1:12345")
+c, addr = s.accept()
+print("Connected by", addr)
+data = c.recv(1024).decode()
+print("Received:", data)
+c.send(data.encode())
+c.close()
+
+Client (echo_client.py)
+
+import socket
+s = socket.socket()
+s.connect(("127.0.0.1", 12345))
+msg = "Hello, Server!"
+print("Sending message:", msg)
+s.send(msg.encode())
+data = s.recv(1024).decode()
+print("Received from server:", data)
+s.close()
+
+
+TCP Echo Program
+Server
+Server listening on 127.0.0.1:12345
+Connected by ('127.0.0.1', 59210)
+Received: Hello, Server!
+Client
+Sending message: Hello, Server!
+Received from server: Hello, Server!
+
+==========================================================================================================================================================================================
+3 Simple File Transfer Program
+Server (file_server.py)
+
+import socket
+s = socket.socket()
+s.bind(("127.0.0.1", 1235))
+s.listen(1)
+print("Server listening on 127.0.0.1:1235")
+c, addr = s.accept()
+print("Connected by", addr)
+f = open("recv.txt", "wb")
+while True:
+    data = c.recv(1024)
+    if not data:
+        break
+    f.write(data)
+print("File received successfully")
+f.close()
+c.close()
+
+
+Client (file_client.py)
+
+import socket
+s = socket.socket()
+s.connect(("127.0.0.1", 1235))
+f = open("send.txt", "rb")
+print("Sending file...")
+while True:
+    data = f.read(1024)
+    if not data:
+        break
+    s.send(data)
+print("File sent successfully")
+f.close()
+s.close()
+
+
+File Transfer Program
+Server
+Server listening on 127.0.0.1:1235
+Connected by ('127.0.0.1', 59220)
+File received successfully
+Client
+Sending file...
+File sent successfully
+
+===========================================================================================================================================================================================
+4 Simple Chat Application
+
+import socket
+s = socket.socket()
+s.bind(("127.0.0.1", 1236))
+s.listen(1)
+print("Server listening on 127.0.0.1:1236")
+c, addr = s.accept()
+print("Connected by", addr)
+while True:
+    msg = c.recv(1024).decode()
+    print("Client:", msg)
+    reply = input("You: ")
+    c.send(reply.encode())
+
+
+Client (chat_client.py)
+
+import socket
+s = socket.socket()
+s.connect(("127.0.0.1", 1236))
+print("Connected to server")
+while True:
+    msg = input("You: ")
+    s.send(msg.encode())
+    reply = s.recv(1024).decode()
+    print("Server:", reply)
+
+
+Chat Application
+Server
+Server listening on 127.0.0.1:1236
+Connected by ('127.0.0.1', 59230)
+Client: Hello
+You: Hi
+Client: How are you?
+You: Fine
+Client
+Connected to server
+
+You: Hello
+Server: Hi
+You: How are you?
+Server: Fine
+
+==============================================================================================================================================================================================
+5 ARP / RARP Program
+
+# ARP (IP → MAC)
+arp = {
+    "192.168.1.1": "AA:BB:CC",
+    "192.168.1.2": "11:22:33"
+}
+ip = input("Enter IP: ")
+print("MAC Address:", arp.get(ip, "Not found"))
+# RARP (MAC → IP)
+rarp = {
+    "AA:BB:CC": "192.168.1.1",
+    "11:22:33": "192.168.1.2"
+}
+mac = input("Enter MAC: ")
+print("IP Address:", rarp.get(mac, "Not found"))
+
+ARP / RARP Program
+Enter IP: 192.168.1.1
+MAC Address: AA:BB:CC
+
+Enter MAC: AA:BB:CC
+IP Address: 192.168.1.1
+
+=======================================================================================================================================================================================================
+6 Simple HTTP Web Client (http_client.py
+
+import socket
+host = "google.com"
+port = 80
+# create socket
+s = socket.socket()
+s.connect((host, port))
+# send HTTP request
+req = "GET / HTTP/1.1\r\nHost: google.com\r\n\r\n"
+s.send(req.encode())
+# receive data
+data = s.recv(4096).decode()
+print("Received:\n", data)
+s.close()
+
+
+
+HTTP Web Client
+Received:
+HTTP/1.1 200 OK
+Date: ...
+Content-Type: text/html
+...
+
+<html>
+<head><title>Google</title></head>
+<body>...</body>
+</html>
+==========================================================================================================================================================================================================
+7 Distance Vector Program
+
+# initial cost (A to A,B,C)
+cost = [0, 2, 5]
+print("Initial cost:", cost)
+# assume B tells A that cost to C = 1
+# so new path A → B → C = 2 + 1 = 3
+new_cost = cost[1] + 1
+# update using minimum
+if new_cost < cost[2]:
+    cost[2] = new_cost
+print("Updated cost:", cost)
+
+
+
+
+Distance Vector Program
+Initial cost: [0, 2, 5]
+Updated cost: [0, 2, 3]
+============================================================================================================================================================================================================
+
+8 Simple DNS Program (UDP)
+Server (dns_server.py)
+
+import socket
+# simple DNS table
+dns = {
+    "google.com": "8.8.8.8",
+    "example.com": "93.184.216.34"
+}
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+s.bind(("127.0.0.1", 1237))
+print("DNS Server running...")
+while True:
+    data, addr = s.recvfrom(1024)
+    name = data.decode()
+    print("Request for:", name)
+    ip = dns.get(name, "Not found")
+    s.sendto(ip.encode(), addr)
+
+Client (dns_client.py)
+
+import socket
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+name = input("Enter domain: ")
+s.sendto(name.encode(), ("127.0.0.1", 1237))
+ip = s.recv(1024).decode()
+print("IP Address:", ip)
+s.close()
+
+
+
+DNS Simulation (UDP)
+Server
+DNS Server running...
+Request for: google.com
+Client
+Enter domain: google.com
+IP Address: 8.8.8.8
+
+============================================================================================================================================================================
+Basic Commands
+sudo tcpdump
+Captures all packets on the default interface.
+
+sudo tcpdump -i eth0
+Capture packets on a specific interface.
+
+sudo tcpdump -i eth0 icmp
+Filter ICMP packets (e.g., ping).
+
+sudo tcpdump -w capture.pcap
+Save captured packets to a file.
+
+==================================================
+iperf (Network Performance Tool)
+
+Server:
+iperf -s
+
+Client:
+iperf -c <server_ip>
+Result
+Displays bandwidth, transfer rate, and performance metrics between client and server.
+
+=========================================
+ifconfig
+Displays all interfaces.
+ifconfig eth0
+
+Shows details of a specific interface.
+sudo ifconfig eth0 up
+
+Enable interface.
+sudo ifconfig eth0 down
+
+=========================================
+nslookup
+nslookup google.com
+nslookup <domain> <dns_server>
+nslookup -type=mx google.com

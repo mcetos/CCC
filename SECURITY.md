@@ -157,6 +157,35 @@ Encrypted: ELXLHXORWD
 Decrypted: HELLOWORLD
 
 ===========================================================================================================================================================================
+Digital Signature Standard (DSS) using Python
+
+from Crypto.PublicKey import DSA
+from Crypto.Signature import DSS
+from Crypto.Hash import SHA256
+key = DSA.generate(2048)
+private_key = key
+public_key = key.publickey()
+message = "Hello, this is a digital signature example"
+msg_bytes = message.encode()
+hash_obj = SHA256.new(msg_bytes)
+signer = DSS.new(private_key, 'fips-186-3')
+signature = signer.sign(hash_obj)
+print("Signature:", signature)
+verifier = DSS.new(public_key, 'fips-186-3')
+try:
+    verifier.verify(hash_obj, signature)
+    print("Signature is valid")
+except ValueError:
+    print("Signature is not valid")
+    
+Output (Example)
+Signature: b'...binary data...'
+Signature is valid
+
+
+
+==========================================================================================================================================================================================
+
 📦 Install Required Library
 bashpip install pycryptodome numpy
 
@@ -238,11 +267,15 @@ PYTHON PROGRAM PROCEDURES (Pycrypt Libraries / Logic)
       Generate hash value (128-bit).
       Used for integrity checking.
 12. Digital Signature (DSS)
-     Generate key pair (public/private).
-     Create hash of message.
-     Encrypt hash using private key → signature.
+     Import required modules (DSA, SHA256, DSS).
+     Generate DSA key pair (private + public key).
+     Take the message to be signed.
+     Convert message into bytes.
+     Create hash of the message using SHA-256.
+     Sign the hash using the private key.
      Send message + signature.
-     Receiver verifies using public key.
+     Verify signature using public key.
+     Display whether signature is valid or not.
 13. Intrusion Detection System (Snort)
      Install Snort tool.
      Configure rules file.
